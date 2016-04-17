@@ -16,11 +16,11 @@
   },
   "devDependencies": {},
   "scripts": {
-    "test": "gulp test"
+    "test": "gulp test" 
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/javadparvaresh/FluentTaskRunner.git"
+    "url": "https://github.com/javadparvaresh/FTaskRunner.git"
   },
   "keywords": [
     "fluent",
@@ -30,7 +30,7 @@
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/javadparvaresh/FluentTaskRunner/issues"
+    "url": "https://github.com/javadparvaresh/FTaskRunner/issues"
   },
-  "homepage": "https://github.com/javadparvaresh/FluentTaskRunner"
+  "homepage": "https://github.com/javadparvaresh/FTaskRunner"
 }
