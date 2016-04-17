@@ -1,0 +1,36 @@
+{
+  "name": "fluent-task-runner",
+  "version": "1.0.0",
+  "description": "Create and run synced tasks in fluent way",
+  "main": "index.js",
+  "dependencies": {
+    "path": "0.11.14",
+    "promise": "6.1.0"
+  },
+  "author": "javadparvaresh <javadparvaresh@gmail.com>",
+  "engines": {
+    "node": "*"
+  },
+  "directories": {
+    "example": "examples"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "gulp test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/javadparvaresh/FluentTaskRunner.git"
+  },
+  "keywords": [
+    "fluent",
+    "nodejs",
+    "task",
+    "sync"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/javadparvaresh/FluentTaskRunner/issues"
+  },
+  "homepage": "https://github.com/javadparvaresh/FluentTaskRunner"
+}
