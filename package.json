@@ -1,5 +1,5 @@
 {
-  "name": "fluent-task-runner",
+  "name": "ftaskrunner",
   "version": "1.0.0",
   "description": "Create and run synced tasks in fluent way",
   "main": "index.js",
@@ -11,13 +11,7 @@
   "engines": {
     "node": "*"
   },
-  "directories": {
-    "example": "examples"
-  },
   "devDependencies": {},
-  "scripts": {
-    "test": "gulp test" 
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/javadparvaresh/FTaskRunner.git"
