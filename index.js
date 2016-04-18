@@ -1,6 +1,5 @@
 var path = require("path");
 var fs = require("fs");
-var promise = require("promise");
 
 // local
 var rootThis = this;
@@ -51,7 +50,7 @@ function cloneParams(params) {
     }
     return newObj;
 }
-function exec(path,block, context, onCompleted) {
+function exec(path,block, context, callback) {
     try {
 
         var level = context.level;
@@ -66,19 +65,23 @@ function exec(path,block, context, onCompleted) {
                 for (var i = 0; i < block.childs.length; i++) {
                     (function (childBlock) {
                         var childContext = createContext(context, childBlock.scope, out);
-                        exec(path + ">" + branchNumber, childBlock, childContext, function (result) {
-                            if (!inProgress) onCompleted(result);
+                        exec(path + ">" + branchNumber, childBlock, childContext, function (err,result) {
+                            if (err) 
+                                callback(err,null);
+                            else
+                                if (!inProgress) callback(null,result);
                         });
                         branchNumber++;
                     })(block.childs[i]);
                 }
             } else {
-                onCompleted(out);
+                callback(null,out);
             }
 
         });
     }
     catch (er) {
+        callback(er,null);
         scope.$$log("Task '" + block.level + "','" + block.task.name + "' executed by error " + er);
     }
 }
@@ -136,10 +139,10 @@ function createContext(prntContext, blockScope, input) {
 }
 function createRunner(block) {
     return {
-        run: function (input) {
-
+        run: function (input,callback) {
             var context =
-              createContext(null, (input==null) ? {} : input);
+                createContext(null, (input==null) ? {} : input);
+                
             block.task = {
                 name: "rootTask",
                 def: function () { return {}; },
@@ -153,9 +156,10 @@ function createRunner(block) {
                     }
                 }
             };
-
-            return new promise(function (resolve, reject) {
-                exec("",block, context, resolve);
+            exec("",block, context, function(err,result){
+                if (callback){
+                    callback(err,result);
+                }
             });
         },
     };
@@ -227,8 +231,8 @@ function createInstance(builder, tasks, parentInstance) {
         builder(instance.root);
     }
     instance.runner = createRunner(root);
-    instance.run=function(){
-        instance.runner.run();
+    instance.run=function(input,callback){
+        instance.runner.run(input,callback);
     }
 
 
@@ -241,10 +245,10 @@ module.exports=function(){
     var container={
         tasks:[],
         load:function(fluentSchema){
-            var tasks=fluentSchema(this);
-            if (tasks==null) return;
-            for (var i = 0; i < tasks.length; i++) {
-                this.tasks.push(tasks[i]);
+            var tsks=fluentSchema(this);
+            if (tsks==null) return;
+            for (var i = 0; i < tsks.length; i++) {
+                this.tasks.push(tsks[i]);
             }
             return this;
         },
