@@ -240,7 +240,8 @@ module.exports=function(){
     
     var container={
         tasks:[],
-        load:function(tasks){
+        load:function(fluentSchema){
+            var tasks=fluentSchema(this);
             if (tasks==null) return;
             for (var i = 0; i < tasks.length; i++) {
                 this.tasks.push(tasks[i]);
