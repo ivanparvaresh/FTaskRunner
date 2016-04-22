@@ -70,7 +70,7 @@ ftask.load(ftaskMysql).build("helloWorld"function(root){
 ```
 
 ##Documents
-Read documents on [Docus](https://github.com/javadparvaresh/FTaskRunner/releases/doc)
+Read documents on [Docs](https://github.com/javadparvaresh/FTaskRunner/releases/doc)
 
 ##Github
 Releases of FTaskRunner are available on [Github](https://github.com/javadparvaresh/FTaskRunner/releases).
