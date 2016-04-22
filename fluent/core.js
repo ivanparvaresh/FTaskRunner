@@ -3,17 +3,28 @@ module.exports = function (container) {
 
     var tasks = [];
 
-
     tasks.push({
         name: "stop",
         def: function(instance,func) {
             return {};
         },
         exec: function (scope, next) {
-            console.log("TERMINATED");
+            next(null,{ terminate:true })
         }
     });
 
+    tasks.push({
+        name: "input",
+        def: function (instance,input) {
+            return {
+                input:input
+            };
+        },
+        exec: function (scope, next) {
+            next(scope.input);
+        }
+    });
+    
     tasks.push({
         name: "custom",
         def: function(instance,func) {
@@ -22,25 +33,16 @@ module.exports = function (container) {
             };
         },
         exec: function (scope, next) {
-            scope.func(scope, next);
+            if (scope.func){
+                scope.func(scope, next);    
+            }else{
+                next(scope.$$input);
+            }
+            
         }
     });
 
-    tasks.push({
-        name: "historyBack",
-        def: function(instance,count) {
-            if (count == null) count = 1;
-            return {
-                count: count
-            };
-        },
-        exec: function (scope, next) {
-            for (var i = 1; i < scope.count; i++) {
-                scope.$$context.$$history.pop(scope.count);
-            }
-            next(scope.$$context.$$history[scope.$$context.$$history.length - 1]);
-        }
-    })
+   
     tasks.push({
         name: "addParam",
         def: function(instance,name) {
@@ -95,7 +97,6 @@ module.exports = function (container) {
         },
         exec: function (scope, next) {
 
-
             var str = scope.$$input;
             var name = (scope.name == null) ? "" : scope.name;
             if (scope.params != null) {
@@ -105,9 +106,7 @@ module.exports = function (container) {
                     name = name.replace("{" + scope.params[i] + "}", scope.$$getParam(scope.params[i]));
                 }
             }
-
-            scope.$$log(name, str);
-
+            console.log(str);
             next(scope.$$input);
         }
     });
@@ -152,9 +151,9 @@ module.exports = function (container) {
         exec: function (scope, next) {
             for (var i = scope.start; i <= scope.end; i++) {
                 if (i == scope.end)
-                    next(i, true);
+                    next(i);
                 else
-                    next(i, false);
+                    next(i,{ keepRunning:true });
             }
         }
     });
@@ -166,25 +165,29 @@ module.exports = function (container) {
         exec: function (scope, next) {
             for (var i = 0; i < scope.$$input.length; i++) {
                 if (i == scope.$$input.length-1)
-                    next(scope.$$input[i], true);
+                    next(scope.$$input[i]);
                 else
-                    next(scope.$$input[i], false);
+                    next(scope.$$input[i], { keepRunning:true });
             }
         }
     });
     tasks.push({
         name: "fork",
-        def: function (instance, forkFunc) {
+        def: function (instance, brnchDefs) {
+            
             var branches = [];
-            var builder = function (name) {
-                var childInstnace = instance.create();
-                branches.push({
-                    name:name,
-                    instance: childInstnace,
-                });
-                return childInstnace.root;
+            for(var name in brnchDefs){
+                
+                (function(func){
+                     
+                    var builderInstance=
+                        instance.newInstance(name,func);
+                        
+                    branches.push(builderInstance);
+                    
+                })(brnchDefs[name]);
             }
-            forkFunc(builder); // it should be void
+            
             return {
                 branches: branches
             };
@@ -192,7 +195,8 @@ module.exports = function (container) {
         exec: function (scope, next) {
 
             var done = 0;
-            var result = {};
+            var forkResult = {};
+            
             if (scope.branches.length == 0) {
                 next(next.$$input); // pass prv input to next
                 return;
@@ -201,18 +205,12 @@ module.exports = function (container) {
             for (var i = 0; i < scope.branches.length; i++) {
 
                 (function (branch) {
-                    branch.instance.runner.run(scope.$$input).then(function (branchResult) {
-                        result[branch.name]=branchResult;
+                    
+                    branch.runner.run(null,function(err,results){
                         done++;
-                        result[branch.name] = branchResult;
+                        forkResult[branch.name]=results;
                         if (done >= scope.branches.length) {
-                            next(result);
-                        }
-                    }, function (e) {
-                        //console.log("BRANCH [" + i + "] REJECTED1");
-                        done++;
-                        if (done >= scope.branches.length) {
-                            next(result);
+                            next(forkResult);
                         }
                     });
                 })(scope.branches[i]); // end of isolatingh
@@ -220,57 +218,8 @@ module.exports = function (container) {
         }
     });
 
-    tasks.push({
-        name: "forkSetResult",
-        def: function (instance, name) {
-            return {
-                name: name
-            };
-        },
-        exec: function (scope, next) {
-            scope._forkResult = scope.$$input;
-            next(scope._forkResult);
-        }
-    });
-    tasks.push({
-        name:"if",
-        def:function(instance,experssion){
-             return {
-                experssion: experssion
-            };
-        },
-        exec:function(scope,next){
-            var func = Function("value", "return " + scope.experssion)
-            var r = func(scope.$$input);
-            if (r){
-                next(scope.$$input);    
-            }
-        }
-    })
-    tasks.push({
-        name: "iff",
-        def: function (instance, experssion) {
-            return {
-                experssion: experssion
-            };
-        },
-        exec: function (scope, next) {
-            var func = Function("value", "return " + scope.experssion)
-            var r = func(scope.$$input);
-            next(r);
-        }
-    });
-    tasks.push({
-        name: "assert",
-        def: function (instance, experssion) {
-            return {
-                experssion: experssion
-            };
-        },
-        exec: function (scope, next) {
-            if (scope.$$input) next(scope.$$input);
-        }
-    });
+    
+    
     
 
     return tasks;
