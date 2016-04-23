@@ -283,9 +283,11 @@ function exec(block, context, callback) {
                             running--;
                             
                             log(">>Accepting Task Result",context.level+2)
-                            for(var i=0;i<out.length;i++){
-                                log(">>" + out[i],context.level+3);
-                                results.push(out[i]);    
+                            if (out!=null){
+                                for(var i=0;i<out.length;i++){
+                                    log(">>" + out[i],context.level+3);
+                                    results.push(out[i]);    
+                                }
                             }
                             log(">>Accepted Task Result: " + results,context.level+2)
                             
