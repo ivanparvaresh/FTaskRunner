@@ -1,10 +1,10 @@
 {
   "name": "ftaskrunner",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Create and run synced tasks in fluent way",
   "main": "index.js",
   "dependencies": {
-    "path": "0.11.14",
+    "path": "0.11.14"
   },
   "author": "javadparvaresh <javadparvaresh@gmail.com>",
   "engines": {
