@@ -207,6 +207,9 @@ function createContext(prntContext, blockScope, input) {
         context.level=prntContext.level+1;
 
     // global context variables container
+    scope.$$getParams = function () {
+        return scope.$$params;
+    };
     scope.$$getParam = function (name) {
         return scope.$$params[name];
     };
