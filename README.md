@@ -23,11 +23,11 @@ execute them asynchronous. this library is and will stay open soruce.
   
 ```javascript
 var ftask=require("ftaskrunner");
-ftask.build("helloWorld"function(root){
+ftask().build("helloWorld",function(root){
     
     root.for(1,5).print();
     
-}).run(function(result){
+}).run(null,function(result){
     
     console.log("process completed");
     console.log("\t result:" + result.helloWorld.result[0]);
@@ -51,7 +51,7 @@ result: [1,2,3,4,5]
 var ftask=require("FTaskRunner");
 var ftaskMysql=require("FTaskRunner-Mysql");
 
-ftask.load(ftaskMysql).build("helloWorld"function(root){
+ftask().load(ftaskMysql).build("helloWorld",function(root){
     
     root
         .for(1,5)  // load a loop from 1 to 5 
@@ -62,12 +62,15 @@ ftask.load(ftaskMysql).build("helloWorld"function(root){
         .foreach() // loop on every record
         .print(); // print record data into console
     
-}).run(function(result){
+}).run(
+        {}, // null input
+        function(result)
+        { // callback
     
-    console.log("process completed");
-    console.log("\t result:" + result.helloWorld.result[0]);
-    
-})
+            console.log("process completed");
+            console.log("\t result:" + result.helloWorld.result[0]);
+        }
+)
 ```
 
 # Documents
@@ -100,7 +103,7 @@ ftask.build("test",function(root){
         .for(1,2)
         .string("hello").print();
     
-});
+}).run({});
 
 ``` 
 
@@ -115,7 +118,7 @@ in following example you can see we have loaded mysql tasks library and used tho
 ``` javascript
 var ftask=require("FTaskRunner");
 var ftaskMySql=require("FTaskRunner-MySql");
-ftask.load(ftaskMySql).build("test",function(root){
+ftask().load(ftaskMySql).build("test",function(root){
     
     // this sample execute a query twice and print the result in output
     
@@ -125,7 +128,7 @@ ftask.load(ftaskMySql).build("test",function(root){
         .mysqlQuery({host:'',port:'',...})
         .print();
      
-});
+}).run({});
 ```
 
 in this sample we have loaded MySql Tasks into build process and use them to build a process.
