@@ -172,6 +172,31 @@ describe('FTaskRunner', function() {
             })
 
         })
+        it("#wait #scope parameters check",function(done){
+
+            ftask()
+            .build("test",function(root){
+                root
+                    .string("welcome")
+                    .addParam("test")
+                    .wait(function(root){
+                        root.getParam("test").addParam("test2");
+                    });
+            }).run(null,function(result){
+                try{
+                    assert.isNotNull(result.test);
+                    assert.isNotNull(result.test.err);
+
+                    assert.equal(result.test.result[0],"welcome");
+
+                    done();
+                }catch(err){
+                    done(err);
+                }
+                
+            })
+
+        })
         
     });
 });

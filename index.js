@@ -162,7 +162,7 @@ function createRunner(builderInstance) {
         name:builderInstance.name,
         builder:builderInstance,
         runByContext:function(prntContext,input,callback){
-
+            
             var context =
                 createContext(prntContext, null,(input==null) ? {} : input);
             
@@ -206,6 +206,7 @@ function createContext(prntContext, blockScope, input) {
         scope[prop] = blockScope[prop];
     }
 
+    
     scope.$$params = (prntContext == null) ? [] : cloneParams(prntContext.scope.$$params);
     scope.$$input = (input == null) ? {} : input;
     

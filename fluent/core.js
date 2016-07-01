@@ -230,7 +230,7 @@ module.exports = function (container) {
         exec:function(scope, next){
             var builderInstance
                 =scope.builderInstance;
-            builderInstance.runner.runByContext(null,scope.$$input,function(err,result){
+            builderInstance.runner.runByContext(scope.getContext(),scope.$$input,function(err,result){
                 if (err){
                     throw err;
                 }
