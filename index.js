@@ -161,10 +161,20 @@ function createRunner(builderInstance) {
     var runnerInstance={
         name:builderInstance.name,
         builder:builderInstance,
-        run: function (input,callback) {
-            
+        runByContext:function(prntContext,input,callback){
+
             var context =
-                createContext(null, (input==null) ? {} : input);
+                createContext(prntContext, null,(input==null) ? {} : input);
+            
+            exec(builderInstance.root, context, function(err,result){
+                if (callback){
+                    callback(err,result);
+                }
+            });
+        },
+        run: function (input,callback) {
+            var context =
+                createContext(null, null,(input==null) ? {} : input);
             
             exec(builderInstance.root, context, function(err,result){
                 if (callback){
@@ -198,6 +208,8 @@ function createContext(prntContext, blockScope, input) {
 
     scope.$$params = (prntContext == null) ? [] : cloneParams(prntContext.scope.$$params);
     scope.$$input = (input == null) ? {} : input;
+    
+
     var context = {
         scope: scope,
         level:1,
@@ -216,6 +228,9 @@ function createContext(prntContext, blockScope, input) {
     scope.$$addParam = function (name, value) {
         scope.$$params[name] = value;
     };
+    scope.getContext=function(){
+        return context;
+    }
     
     return context;
 }

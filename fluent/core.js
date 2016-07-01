@@ -205,8 +205,7 @@ module.exports = function (container) {
             for (var i = 0; i < scope.branches.length; i++) {
 
                 (function (branch) {
-                    
-                    branch.runner.run(null,function(err,results){
+                    branch.runner.runByContext(scope.getContext(),scope.$$input,function(err,results){
                         done++;
                         forkResult[branch.name]=results;
                         if (done >= scope.branches.length) {
@@ -231,8 +230,7 @@ module.exports = function (container) {
         exec:function(scope, next){
             var builderInstance
                 =scope.builderInstance;
-            builderInstance.runner.run(null,function(err,result){
-                
+            builderInstance.runner.runByContext(null,scope.$$input,function(err,result){
                 if (err){
                     throw err;
                 }
