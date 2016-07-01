@@ -178,14 +178,14 @@ module.exports = function (container) {
             var branches = [];
             for(var name in brnchDefs){
                 
-                (function(func){
+                (function(name,func){
                      
                     var builderInstance=
                         instance.newInstance(name,func);
                         
                     branches.push(builderInstance);
                     
-                })(brnchDefs[name]);
+                })(name,brnchDefs[name]);
             }
             
             return {
@@ -219,6 +219,27 @@ module.exports = function (container) {
     });
 
     
+    tasks.push({
+        name:"wait",
+        def:function(instance,func){
+
+            var builderInstance=
+                instance.newInstance("WAIT_BRANCH",func);
+            
+            return { builderInstance :builderInstance };
+        },
+        exec:function(scope, next){
+            var builderInstance
+                =scope.builderInstance;
+            builderInstance.runner.run(null,function(err,result){
+                
+                if (err){
+                    throw err;
+                }
+                next(result);
+            })
+        }
+    })
     
     
 

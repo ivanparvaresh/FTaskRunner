@@ -126,6 +126,25 @@ describe('FTaskRunner', function() {
                 done();
             });
         });	
+
+        it("#wait",function(done){
+
+            ftask().build("test",function(root){
+                root.wait(function(root){
+                    root.string("hi");
+                });
+            }).run(null,function(result){
+                
+                assert.isNotNull(result.test);
+                assert.isNotNull(result.test.err);
+
+                assert.equal(result.test.result[0],"hi");
+
+                done();
+                
+            })
+
+        })
         
     });
 });
