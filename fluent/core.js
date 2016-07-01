@@ -172,6 +172,37 @@ module.exports = function (container) {
         }
     });
     tasks.push({
+        name:"rif",
+        def:function(instance,conditionFunc,builderFunc){
+
+            var builderInstance=
+                instance.newInstance("IIF_BRANCH",builderFunc);
+            
+            return {
+                builderInstance:builderInstance,
+                conditionFunc:conditionFunc
+            };
+        },
+        exec:function(scope,next){
+
+            if (!scope.conditionFunc(scope)){
+                next(scope.$$input);
+                return;
+            }
+
+            var builderInstance
+                =scope.builderInstance;
+            builderInstance.runner.runByContext(scope.getContext(),scope.$$input,function(err,result){
+                if (err){
+                    throw err;
+                }
+                next(result);
+            })
+
+        }
+    })
+
+    tasks.push({
         name: "fork",
         def: function (instance, brnchDefs) {
             

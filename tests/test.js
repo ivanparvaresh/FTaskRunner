@@ -197,6 +197,40 @@ describe('FTaskRunner', function() {
             })
 
         })
+
+
+        it("#rif",function(done){
+
+            ftask()
+            .build("test",function(root){
+                root
+                    .string("welcome")
+                    .rif(function(scope){
+                        return scope.$$input=="welcome";
+                    },function(root){
+                        root.string("welcome riff");
+                    })
+                    .rif(
+                        scope=> scope.$$input=="welcome",
+                        function(root){
+                            root.string("it should ignore");
+                        }
+                    )
+            }).run(null,function(result){
+                try{
+                    assert.isNotNull(result.test);
+                    assert.isNotNull(result.test.err);
+
+                    assert.equal(result.test.result[0],"welcome riff");
+
+                    done();
+                }catch(err){
+                    done(err);
+                }
+                
+            })
+
+        })
         
     });
 });
