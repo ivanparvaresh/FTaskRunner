@@ -1,6 +1,6 @@
 {
   "name": "ftaskrunner",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Create and run synced tasks in fluent way",
   "main": "index.js",
   "dependencies": {
