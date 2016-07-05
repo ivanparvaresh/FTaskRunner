@@ -202,7 +202,7 @@ module.exports = function (container) {
                 if (err){
                     throw err;
                 }
-                next(result);
+                next(result[0]);
             })
 
         }
