@@ -231,6 +231,17 @@ describe('FTaskRunner', function() {
             })
 
         })
+
+        it("#error",function(done){
+
+            ftask().build("test",root=>{
+                root.string(data).print();
+            }).run(null,result=>{
+                console.log(result);
+                done();
+            })
+
+        })
         
     });
 });

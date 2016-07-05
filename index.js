@@ -300,6 +300,10 @@ function exec(block, context, callback) {
                         
                         exec(childBlock,childContext,function(err,out){
                             running--;
+
+                            if (err){
+                                throw err;
+                            }
                             
                             log(">>Accepting Task Result",context.level+2)
                             if (out!=null){
