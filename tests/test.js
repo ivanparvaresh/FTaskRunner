@@ -101,6 +101,34 @@ describe('FTaskRunner', function() {
                 }
             });	
         })
+        it('#for#input', function (done) {
+            
+            ftask().build("test",function(root){
+                
+                root
+                    .input({
+                        start:1,
+                        end:2
+                    })
+                    .for();
+            
+            }).run(null,function(branches){
+                
+                try{
+                    assert.isNotNull(branches.test);
+                    assert.isNotNull(branches.test.err);
+                    
+                    assert.equal(branches.test.result.length,2);
+                    
+                    assert.equal(branches.test.result[0],1);
+                    assert.equal(branches.test.result[1],2);
+
+                    done();	
+                }catch(err){
+                    done(err);
+                }
+            });	
+        })
         it('#foreach', function (done) {
             	
             ftask().build("test",function(root){
@@ -235,9 +263,15 @@ describe('FTaskRunner', function() {
         it("#error",function(done){
 
             ftask().build("test",root=>{
-                root.string(data).print();
+                root
+                    .custom(function(scope,next){
+                        next(data); // data is not defined
+                    })
+                    .print();
             }).run(null,result=>{
-                console.log(result);
+
+                assert.isNotNull(result.test);
+                assert.isNotNull(result.test.err);
                 done();
             })
 

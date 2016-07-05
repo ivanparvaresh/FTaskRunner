@@ -155,6 +155,12 @@ module.exports = function (container) {
             };
         },
         exec: function (scope, next) {
+
+            if (scope.start==null || scope.end==null){
+                scope.start=scope.$$input.start;
+                scope.end=scope.$$input.end;
+            }
+
             for (var i = scope.start; i <= scope.end; i++) {
                 if (i == scope.end)
                     next(i);
