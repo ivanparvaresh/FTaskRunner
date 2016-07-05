@@ -21,7 +21,13 @@ module.exports = function (container) {
             };
         },
         exec: function (scope, next) {
-            next(scope.input);
+
+            var input=scope.input;
+            if (typeof scope.input === 'function'){
+                input=scope.input(scope);
+            }
+
+            next(input);
         }
     });
     
