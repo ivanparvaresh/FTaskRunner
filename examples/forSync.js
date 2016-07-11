@@ -3,25 +3,44 @@ var ftask=require("./../index");
 ftask({debug:false})
    .build("test",root=>{
                 root
-                    .for(1,2)
+                    //.for(2,2)
                     .custom(function(scope,next){
-                        var index=scope.$$input;
-                        //console.log("FOR CUSTOM ",index);
-                        if (index==1){
-                            setTimeout(function() {
-                                console.log("INDEX 1");
-                                next(scope.$$input).then(function(r){
-                                    //console.log("\t END :",r);
-                                });
-                            }, 400);
-                        }else{
-                            setTimeout(function() {
-                                next(scope.$$input,{keepRunning:true}).then(function(r){
-                                    //console.log("\t RUN :",r);
-                                });
-                            }, 10);
-                        }
+                        //next(1,{keepRunning:true});
+                        //next(2,{keepRunning:false});
+
+                        setTimeout(function() {
+                            console.log("NEXTING (400) ....")
+                            next(1,{keepRunning:true});
+                        }, 10);
+                        setTimeout(function() {
+                            console.log("NEXTING (400) ....")
+                            next(2,{keepRunning:false});
+                        }, 400);
+
+                        // var index=scope.$$input;
+                        // if (index==1){
+                        //     setTimeout(function() {
+                        //         console.log("NEXTING (400) ....")
+                        //         next(scope.$$input);
+                        //     }, 400);
+                        // }else{
+                        //     setTimeout(function() {
+                        //         console.log("NEXTING (100) ....")
+                        //         try{
+                        //             next(scope.$$input,{keepRunning:true});
+                        //         }catch(err){
+                        //             console.log("err",err);
+                        //         }
+                        //     }, 10);
+                        // }
                     })
-            }).run(null).then(function(result){
-                console.log(result);
-            })
+            }).run(null)
+                .then(function(result){
+                    console.log("");
+                    console.log("Process Completed");
+                    console.log(result);
+                    console.log("");
+                })
+                .catch(function(err){
+                    console.log(">>>",err);
+                })

@@ -301,7 +301,6 @@ describe('FTaskRunner', function() {
                 root
                     .forSync(1,2)
                     .custom(function(scope,next){
-                        console.log(">>",scope.$$input);
                         if (scope.$$input==1){
                             setTimeout(function() {
                                 next(scope.$$input); // it will execute then
@@ -311,10 +310,10 @@ describe('FTaskRunner', function() {
                                 next(scope.$$input,{keepRunning:true}); // it will execute first
                             }, 10);
                         }
-                    }).print();
+                    });
 
             }).run(null).then(function(result){
-                console.log(result);
+                //console.log(result);
             }).catch(function(err){
                 done(err);
             })

@@ -1,6 +1,4 @@
 
-
-
 //------------------------------------------------------------------------------
 //          MODULE
 //------------------------------------------------------------------------------
@@ -32,7 +30,7 @@ module.exports=function(options){
             return new Promise(function(resolve,reject){
 
                 var running=0;
-                var result=[];
+                var results=[];
 
                 for(var i=0;i<me.builders.length;i++){
                     running++;
@@ -44,10 +42,10 @@ module.exports=function(options){
 
                         function onBranchCompleted(name,result){
                             running--;
-                            result[name]=result;
+                            results[name]=result;
 
                             if (running==0){
-                                resolve(result);
+                                resolve(results);
                             }
                         }
 
@@ -70,8 +68,8 @@ module.exports=function(options){
 
                     })(me.builders[i]);
                 }    
-            });
-        }
+            }); // end of run promise
+        } // end of run
     };
     
 
@@ -87,8 +85,11 @@ module.exports=function(options){
         if ( options.debug ){
             var data="[" + level + "]" + text;
             for(var i=0;i<level;i++) data= "|---" + data;
-            console.log("\t " + data);
+            log2("\t " + data);
         }
+    }
+    var log2=function(){
+        console.log.apply(this,arguments);
     }
 
 
@@ -134,7 +135,8 @@ module.exports=function(options){
         builderInstance.runner=createRunner(builderInstance);
         
         return builderInstance;
-    };
+    } // end of create builder
+
     function createBlock(builderInstance,tasks,parentBlock, task, scope) {
         var block = {
             scope: (scope == null) ? {} : scope,
@@ -187,7 +189,11 @@ module.exports=function(options){
             run: function (prntContext,input) {
                 var context =
                     createContext(prntContext, null,(input==null) ? {} : input);
-                return exec(builderInstance.root,context);
+                return exec(builderInstance.root,context)
+                    .then(function(d){
+                        log2(">>>",d);
+                        return d;
+                    })
             },
         };
         return runnerInstance;
@@ -252,9 +258,13 @@ module.exports=function(options){
             log("Executing task:[" + task.name + "], level:["+level+"]",level);
             var results=[];
 
+            log2("["+level+"]","'"+task.name+"'","Before Exec","Input:",scope.$$input);
+
             task.exec(scope,function(out,opts){
-                
+
                 return new Promise(function(resolveTask,rejectTask){
+
+                    log2("["+level+"]","\t","'"+task.name+"'","Resolved","Out:",out,"options:",opts);
                     log(">>Executed:[" + task.name + "], level:["+level+"]",level+1);
                     var options={
                         keepRunning:false,
@@ -270,20 +280,23 @@ module.exports=function(options){
                     }
                     if (options.terminate){
                         log("Terminated " + results,context.level);
-                        resolveTask();
+                        resolveTask(results);
                         return;
                     }
 
                     if (block.childs.length==0){
+                        log2("["+level+"]","\t","'"+task.name+"'","No Child","options:",options);
                         log(">>Returning Tasks Result("+block.task.name+"): " + out,level+1)
                         results.push(out);
-                        
+                        log2("["+level+"]","\t","'"+task.name+"'","Result Updated:",results);
                         if (!options.keepRunning){
-                            resolve(results);
+                            log2("["+level+"]","\t","'"+task.name+"'","Resolving...");
                             resolveTask(results);
+                            resolve(results);
                             return;
                         }
-                        //resolveTask(results);
+                        log2("["+level+"]","\t","'"+task.name+"'","Resolving Task and kepp running...");
+                        resolveTask(results);
                         return;
                     }
 
@@ -294,41 +307,49 @@ module.exports=function(options){
                             var childContext=
                                 createContext(context, childBlock.scope, out);
                             
+                            log2("["+level+"]","'"+task.name+"'","->","'"+childBlock.task.name+"'","Before Exec","Input:",out);
                             exec(childBlock,childContext).then(function(out){
+                                log2("["+level+"]","'"+task.name+"'","->","'"+childBlock.task.name+"'","Resolved","Out:",out);
+
                                 running--;
-                                
-                                log(">>Accepting Task Result",context.level+2)
-                                if (out!=null){
-                                    for(var i=0;i<out.length;i++){
-                                        log(">>" + out[i],context.level+3);
-                                        results.push(out[i]);    
-                                    }
-                                }
-                                log(">>Accepted Task Result: " + results,context.level+2)
-                                
+                                log(">>Accepted Task Result: " + results,context.level+2,out)
                                 
                                 if (running==0){
+                                    log2("["+level+"]","'"+task.name+"'","->","'"+childBlock.task.name+"'","No Running","options:",options);
                                     if (!options.keepRunning){
                                         log("Returning value : " + results,context.level)
+                                        log2("["+level+"]","'"+task.name+"'","->","'"+childBlock.task.name+"'","Resolving completly the task",results);
+                                        results=out;
                                         resolve(results);
+                                        resolveTask(results);
+                                    }else{
+                                        log2("["+level+"]","'"+task.name+"'","->","'"+childBlock.task.name+"'","Resolving task and keep running");
                                         resolveTask(results);
                                     }
                                 } // running =0
+
                             }).catch(function(err){
+                                log2("ERROR","error:",err);
                                 log("Error " + results,context.level,err);
-                                reject(err);
                                 rejectTask(err);
+                                reject(err);
                                 return;
                             });
 
                         })(block.childs[i]);
                     } // end of running childs
 
-                });
-            });
 
-        });
-    }
+                }).catch(function(err){
+                    log2("err",err);
+                    reject(err);
+                    throw err;
+                })
+
+                
+            });
+        })
+    } // end of exec function
     
     
     
