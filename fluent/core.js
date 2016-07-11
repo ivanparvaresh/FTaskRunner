@@ -1,4 +1,4 @@
-// export  
+// export
 module.exports = function (container) {
 
     var tasks = [];
@@ -30,7 +30,7 @@ module.exports = function (container) {
             next(input);
         }
     });
-    
+
     tasks.push({
         name: "custom",
         def: function(instance,func) {
@@ -40,15 +40,15 @@ module.exports = function (container) {
         },
         exec: function (scope, next) {
             if (scope.func){
-                scope.func(scope, next);    
+                scope.func(scope, next);
             }else{
                 next(scope.$$input);
             }
-            
+
         }
     });
 
-   
+
     tasks.push({
         name: "addParam",
         def: function(instance,name) {
@@ -90,7 +90,7 @@ module.exports = function (container) {
             next(scope.$$getParam(scope.name));
         }
     });
-    
+
     // output
     tasks.push({
         name: "print",
@@ -116,7 +116,7 @@ module.exports = function (container) {
             next(scope.$$input);
         }
     });
-    
+
     //util
     tasks.push({
         name: "string",
@@ -144,7 +144,7 @@ module.exports = function (container) {
 			}, scope.time);
         }
     });
-    
+
     //flow
     tasks.push({
         name: "for",
@@ -170,6 +170,44 @@ module.exports = function (container) {
         }
     });
     tasks.push({
+        name:"forSync",
+        def:function(instance,start,end){
+            return {
+                start: start,
+                end: end
+            };
+        },
+        exec:function(scope,next){
+            if (scope.start==null || scope.end==null){
+                scope.start=scope.$$input.start;
+                scope.end=scope.$$input.end;
+            }
+
+
+            var index=scope.start;
+            function nextLoop(){
+
+                if (index >= scope.end){
+                    next(index,{ keepRunning:false })
+                        .then(function(result){
+                            index++;    
+                        }).catch(function(err){
+                            throw err;
+                        });
+                }else{
+                    next(index,{ keepRunning:true })
+                        .then(function(result){
+                            index++;
+                            nextLoop();
+                        }).catch(function(err){
+                            throw err;
+                        });
+                }
+            }
+            nextLoop();
+        }
+    })
+    tasks.push({
         name: "foreach",
         def: function (instance) {
             return {};
@@ -189,7 +227,7 @@ module.exports = function (container) {
 
             var builderInstance=
                 instance.newInstance("IIF_BRANCH",builderFunc);
-            
+
             return {
                 builderInstance:builderInstance,
                 conditionFunc:conditionFunc
@@ -204,11 +242,10 @@ module.exports = function (container) {
 
             var builderInstance
                 =scope.builderInstance;
-            builderInstance.runner.runByContext(scope.getContext(),scope.$$input,function(err,result){
-                if (err){
-                    throw err;
-                }
+            builderInstance.runner.run(scope.getContext(),scope.$$input).then(function(result){
                 next(result[0]);
+            }).catch(function(err){
+                throw err;
             })
 
         }
@@ -217,20 +254,20 @@ module.exports = function (container) {
     tasks.push({
         name: "fork",
         def: function (instance, brnchDefs) {
-            
+
             var branches = [];
             for(var name in brnchDefs){
-                
+
                 (function(name,func){
-                     
+
                     var builderInstance=
                         instance.newInstance(name,func);
-                        
+
                     branches.push(builderInstance);
-                    
+
                 })(name,brnchDefs[name]);
             }
-            
+
             return {
                 branches: branches
             };
@@ -239,7 +276,7 @@ module.exports = function (container) {
 
             var done = 0;
             var forkResult = {};
-            
+
             if (scope.branches.length == 0) {
                 next(next.$$input); // pass prv input to next
                 return;
@@ -248,7 +285,14 @@ module.exports = function (container) {
             for (var i = 0; i < scope.branches.length; i++) {
 
                 (function (branch) {
-                    branch.runner.runByContext(scope.getContext(),scope.$$input,function(err,results){
+                    branch.runner.run(scope.getContext(),scope.$$input)
+                    .then(function(results){
+                        done++;
+                        forkResult[branch.name]=results;
+                        if (done >= scope.branches.length) {
+                            next(forkResult);
+                        }
+                    }).catch(function(err){
                         done++;
                         forkResult[branch.name]=results;
                         if (done >= scope.branches.length) {
@@ -260,29 +304,31 @@ module.exports = function (container) {
         }
     });
 
-    
+
     tasks.push({
         name:"wait",
         def:function(instance,func){
 
             var builderInstance=
                 instance.newInstance("WAIT_BRANCH",func);
-            
+
             return { builderInstance :builderInstance };
         },
         exec:function(scope, next){
             var builderInstance
                 =scope.builderInstance;
-            builderInstance.runner.runByContext(scope.getContext(),scope.$$input,function(err,result){
-                if (err){
-                    throw err;
-                }
+            builderInstance.runner.run(scope.getContext(),scope.$$input)
+            .then(function(result){
                 next(result);
+            }).catch(function(err){
+                throw err;
             })
         }
     })
-    
-    
+
+
+
+
 
     return tasks;
 }

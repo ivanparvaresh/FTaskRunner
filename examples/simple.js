@@ -1,13 +1,13 @@
 var ftask=require("./../index");
 
-ftask()
+ftask({debug:true})
     //.load("sd")
     //.load("s")
     //.load("s")
     .build("test",function(root){
            
         root
-            
+            .string("hi")
              .fork({
                 "f1" : function(root){ root.string("fork1") },
                 "f2" : function(root){ root.string("fork2") },
@@ -16,7 +16,7 @@ ftask()
             
         
     })
-    .run(null,function(result){
+    .run(null).then(function(result){
         
         console.log("");
         console.log("Process execution completed ");
@@ -27,6 +27,7 @@ ftask()
             if (instance.err){
                 console.log("\t |--- Error : " + instance.err);
                 console.log("\t |------ Error : " + instance.err);
+                console.log("\t |------ Error : " + instance.err.stack);
             }else{
                 console.log("\t |--- Success");
                 console.log("\t     |---", JSON.stringify(instance.result));
@@ -34,4 +35,9 @@ ftask()
         }
         console.log("");
         
+    }).catch(function(err){
+        console.log("");
+        console.log("Process execution failed..");
+        console.log(err);
+        console.log("stack",err.stack);
     });

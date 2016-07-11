@@ -1,5 +1,6 @@
 var assert = require('chai').assert;
 var ftask=require("./../index");
+var options={debug:true};
 
 describe('FTaskRunner', function() {
 
@@ -9,22 +10,21 @@ describe('FTaskRunner', function() {
         it('it should return hello with no error', function (done) {
             
             ftask().build("test",function(root){
-                
                 root.string("hello");
-                
-            }).run(null,function(branches){
-                
-                try{
-                
-                    assert.isNotNull(branches.test);
-                    assert.isNotNull(branches.test.err);
-                    assert.equal(branches.test.result[0],"hello");
-                    done();
-                    
-                }catch(err){
+            }).run(null)
+                .then(function(branches){
+                    try{
+                        assert.isNotNull(branches.test);
+                        assert.isNotNull(branches.test.err);
+                        assert.equal(branches.test.result[0],"hello");
+                        done();
+                        
+                    }catch(err){
+                        done(err);
+                    }
+                }).catch(function(err){
                     done(err);
-                }
-            });	
+                });	
         });
 
         it('it should get param', function (done) {
@@ -36,8 +36,7 @@ describe('FTaskRunner', function() {
                     .pushParam("param")
                     .getParam("param");
                     
-            }).run(null,function(branches){
-
+            }).run(null).then(function(branches){
                 try{
                     assert.isNotNull(branches.test);
                     assert.isNotNull(branches.test.err);
@@ -47,6 +46,8 @@ describe('FTaskRunner', function() {
                 }catch(err){
                     done(err);
                 }	
+            }).catch(function(err){
+                done(err);
             });
             
         });
@@ -63,7 +64,7 @@ describe('FTaskRunner', function() {
                 
                 root.input("hello")
             
-            }).run(null,function(branches){
+            }).run(null).then(function(branches){
                 try{
                     assert.isNotNull(branches.test);
                     assert.isNotNull(branches.test.err);
@@ -74,7 +75,9 @@ describe('FTaskRunner', function() {
                 }catch(err){
                     done(err);
                 }		
-            });	
+            }).catch(function(err){
+                done(err);
+            });;	
             
         });
 
@@ -84,7 +87,7 @@ describe('FTaskRunner', function() {
                 
                 root.for(1,2);
             
-            }).run(null,function(branches){
+            }).run(null).then(function(branches){
                 
                 try{
                     assert.isNotNull(branches.test);
@@ -99,7 +102,9 @@ describe('FTaskRunner', function() {
                 }catch(err){
                     done(err);
                 }
-            });	
+            }).catch(function(err){
+                done(err);
+            });;	
         })
         it('#for#input', function (done) {
             
@@ -112,7 +117,7 @@ describe('FTaskRunner', function() {
                     })
                     .for();
             
-            }).run(null,function(branches){
+            }).run(null).then(function(branches){
                 
                 try{
                     assert.isNotNull(branches.test);
@@ -127,7 +132,9 @@ describe('FTaskRunner', function() {
                 }catch(err){
                     done(err);
                 }
-            });	
+            }).catch(function(err){
+                done(err);
+            });;	
         })
         it('#foreach', function (done) {
             	
@@ -135,7 +142,7 @@ describe('FTaskRunner', function() {
                 
                 root.input(["1","2","3"]).foreach();
             
-            }).run(null,function(branches){
+            }).run(null).then(function(branches){
                 
                 try{
                     assert.isNotNull(branches.test);
@@ -151,7 +158,9 @@ describe('FTaskRunner', function() {
                 }catch(err){
                     done(err);
                 }
-            });
+            }).catch(function(err){
+                done(err);
+            });;
         });	
         it('#fork', function (done) {
             	
@@ -161,7 +170,7 @@ describe('FTaskRunner', function() {
                         "s2":function(root){ root.string("s2"); },
                         "s3":function(root){ root.string("s3"); }
                 });
-            }).run(null,function(branches){
+            }).run(null).then(function(branches){
                 
                 try{
                     assert.isNotNull(branches.test);
@@ -173,7 +182,9 @@ describe('FTaskRunner', function() {
                 }catch(err){
                     done(err);
                 }
-            });
+            }).catch(function(err){
+                done(err);
+            });;
         });	
 
         it("#wait",function(done){
@@ -185,7 +196,7 @@ describe('FTaskRunner', function() {
                     .wait(function(root){
                         // nothing we need to do just passing valu to next one
                     });
-            }).run(null,function(result){
+            }).run(null).then(function(result){
                 try{
                     assert.isNotNull(result.test);
                     assert.isNotNull(result.test.err);
@@ -196,8 +207,9 @@ describe('FTaskRunner', function() {
                 }catch(err){
                     done(err);
                 }
-                
-            })
+            }).catch(function(err){
+                done(err);
+            });
 
         })
         it("#wait #scope parameters check",function(done){
@@ -210,7 +222,7 @@ describe('FTaskRunner', function() {
                     .wait(function(root){
                         root.getParam("test").addParam("test2");
                     });
-            }).run(null,function(result){
+            }).run(null).then(function(result){
                 try{
                     assert.isNotNull(result.test);
                     assert.isNotNull(result.test.err);
@@ -222,7 +234,9 @@ describe('FTaskRunner', function() {
                     done(err);
                 }
                 
-            })
+            }).catch(function(err){
+                done(err);
+            });
 
         })
 
@@ -244,7 +258,7 @@ describe('FTaskRunner', function() {
                             root.string("it should ignore");
                         }
                     )
-            }).run(null,function(result){
+            }).run(null).then(function(result){
                 try{
                     assert.isNotNull(result.test);
                     assert.isNotNull(result.test.err);
@@ -256,7 +270,9 @@ describe('FTaskRunner', function() {
                     done(err);
                 }
                 
-            })
+            }).catch(function(err){
+                done(err);
+            });
 
         })
 
@@ -268,11 +284,39 @@ describe('FTaskRunner', function() {
                         next(data); // data is not defined
                     })
                     .print();
-            }).run(null,result=>{
-
+            }).run(null).then(result=>{
                 assert.isNotNull(result.test);
                 assert.isNotNull(result.test.err);
                 done();
+            }).catch(function(err){
+                done(err);
+            });
+
+        })
+
+        it("#forSync",function(done){
+
+            ftask().build("test",root=>{
+
+                root
+                    .forSync(1,2)
+                    .custom(function(scope,next){
+                        console.log(">>",scope.$$input);
+                        if (scope.$$input==1){
+                            setTimeout(function() {
+                                next(scope.$$input); // it will execute then
+                            }, 10);
+                        }else{
+                            setTimeout(function() {
+                                next(scope.$$input,{keepRunning:true}); // it will execute first
+                            }, 10);
+                        }
+                    }).print();
+
+            }).run(null).then(function(result){
+                console.log(result);
+            }).catch(function(err){
+                done(err);
             })
 
         })
