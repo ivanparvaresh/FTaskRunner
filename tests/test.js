@@ -16,7 +16,7 @@ describe('FTaskRunner', function() {
                     try{
                         assert.isNotNull(branches.test);
                         assert.isNotNull(branches.test.err);
-                        assert.equal(branches.test.result[0],"hello");
+                        assert.equal(branches.test.result,"hello");
                         done();
                         
                     }catch(err){
@@ -304,16 +304,64 @@ describe('FTaskRunner', function() {
                         if (scope.$$input==1){
                             setTimeout(function() {
                                 next(scope.$$input); // it will execute then
-                            }, 10);
+                            }, 20);
                         }else{
                             setTimeout(function() {
-                                next(scope.$$input,{keepRunning:true}); // it will execute first
+                                next(scope.$$input); // it will execute first
                             }, 10);
                         }
                     });
 
             }).run(null).then(function(result){
-                //console.log(result);
+                
+                try{
+                    assert.isNotNull(result.test);
+
+                    assert.equal(result.test.result[0],1);
+                    assert.equal(result.test.result[1],2);
+
+                    done();
+                }catch(err){
+                    done(err);
+                }
+
+            }).catch(function(err){
+                done(err);
+            })
+
+        })
+        it("#foreachSync",function(done){
+
+            ftask().build("test",root=>{
+
+                root
+                    .input([1,2])
+                    .foreachSync()
+                    .custom(function(scope,next){
+                        if (scope.$$input==1){
+                            setTimeout(function() {
+                                next(scope.$$input); // it will execute then
+                            }, 20);
+                        }else{
+                            setTimeout(function() {
+                                next(scope.$$input); // it will execute first
+                            }, 10);
+                        }
+                    });
+
+            }).run(null).then(function(result){
+                
+                try{
+                    assert.isNotNull(result.test);
+
+                    assert.equal(result.test.result[0],1);
+                    assert.equal(result.test.result[1],2);
+
+                    done();
+                }catch(err){
+                    done(err);
+                }
+
             }).catch(function(err){
                 done(err);
             })

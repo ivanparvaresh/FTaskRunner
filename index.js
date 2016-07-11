@@ -81,15 +81,21 @@ module.exports=function(options){
         var hrTime=process.hrtime();
         return Math.floor(hrTime[0] * 1000000 + hrTime[1] / 1000,0);
     }
-    var log=function(text,level){
-        if ( options.debug ){
-            var data="[" + level + "]" + text;
-            for(var i=0;i<level;i++) data= "|---" + data;
-            log2("\t " + data);
+    var log=function(level){
+        if (!options.debug) return;
+        var level=arguments[0];
+
+        var data="["+level+"]";
+        for(var i=0;i<level;i++) data= data + "--|--";
+
+        var args=[];
+        args.push(data);
+        for(var i=1;i<arguments.length;i++){
+            args.push(arguments[i]);
         }
-    }
-    var log2=function(){
-        console.log.apply(this,arguments);
+        
+        
+        console.log.apply(this,args);
     }
 
 
@@ -142,7 +148,7 @@ module.exports=function(options){
             scope: (scope == null) ? {} : scope,
             task: task,
             parent: parentBlock, // it can be null
-            childs: []
+            nextBlock:null
         };
         makeBlockFluentable(builderInstance,tasks,block);
         return block;
@@ -168,9 +174,9 @@ module.exports=function(options){
                     if (scope == null)
                         scope = {};
 
-                    var newBlock = createBlock(builderInstance, tasks,block, task, scope);
-                    block.childs.push(newBlock);
-                    return newBlock;
+                    var nextBlock = createBlock(builderInstance, tasks,block, task, scope);
+                    block.nextBlock=nextBlock;
+                    return nextBlock;
                 };
             })(tasks[i]);
         }
@@ -189,11 +195,7 @@ module.exports=function(options){
             run: function (prntContext,input) {
                 var context =
                     createContext(prntContext, null,(input==null) ? {} : input);
-                return exec(builderInstance.root,context)
-                    .then(function(d){
-                        log2(">>>",d);
-                        return d;
-                    })
+                return exec(builderInstance.root,context);
             },
         };
         return runnerInstance;
@@ -254,18 +256,14 @@ module.exports=function(options){
             var task   = block.task;
             var scope  = context.scope;
             var level  = context.level;
-
-            log("Executing task:[" + task.name + "], level:["+level+"]",level);
             var results=[];
+            var branchs=0;
 
-            log2("["+level+"]","'"+task.name+"'","Before Exec","Input:",scope.$$input);
-
+            log(level,"Executing task [" + task.name + "]","{","input:",scope.$$input,"}");
             task.exec(scope,function(out,opts){
-
+                branchs++;
                 return new Promise(function(resolveTask,rejectTask){
 
-                    log2("["+level+"]","\t","'"+task.name+"'","Resolved","Out:",out,"options:",opts);
-                    log(">>Executed:[" + task.name + "], level:["+level+"]",level+1);
                     var options={
                         keepRunning:false,
                         terminate:false  
@@ -278,70 +276,57 @@ module.exports=function(options){
                             options.terminate=opts.terminate;
                         }
                     }
+
+                    log(level,">> Task executed [" + task.name + "]","{","output:",out,",","options:",options,"}");
                     if (options.terminate){
-                        log("Terminated " + results,context.level);
+                        log(level,">> Task terminated [" + task.name + "]","{","results:",results,"}");
                         resolveTask(results);
                         return;
                     }
 
-                    if (block.childs.length==0){
-                        log2("["+level+"]","\t","'"+task.name+"'","No Child","options:",options);
-                        log(">>Returning Tasks Result("+block.task.name+"): " + out,level+1)
+                    if (block.nextBlock==null){
                         results.push(out);
-                        log2("["+level+"]","\t","'"+task.name+"'","Result Updated:",results);
                         if (!options.keepRunning){
-                            log2("["+level+"]","\t","'"+task.name+"'","Resolving...");
+                            log(level,">> Flow is ended, Returning Task Result [" + task.name + "]","{","results:",results,"}");
                             resolveTask(results);
                             resolve(results);
-                            return;
+                        }else{
+                            log(level,">> Flow is ended, But task is still running [" + task.name + "]");
+                            resolveTask(results);
                         }
-                        log2("["+level+"]","\t","'"+task.name+"'","Resolving Task and kepp running...");
-                        resolveTask(results);
-                        return;
-                    }
+                    }else{
 
-                    // when there is child block
-                    var running=block.childs.length;
-                    for(var i=0;i<block.childs.length;i++){
-                        (function(childBlock){ 
-                            var childContext=
+                        childBlock=block.nextBlock;
+                        var childContext=
                                 createContext(context, childBlock.scope, out);
                             
-                            log2("["+level+"]","'"+task.name+"'","->","'"+childBlock.task.name+"'","Before Exec","Input:",out);
-                            exec(childBlock,childContext).then(function(out){
-                                log2("["+level+"]","'"+task.name+"'","->","'"+childBlock.task.name+"'","Resolved","Out:",out);
+                        log(level,">> Executing next block[" + task.name + "->"+childBlock.task.name+"]","{","input:",out,"}");
+                        exec(childBlock,childContext).then(function(out){
+                            log(level,">> Task next block Resolved [" + task.name + "->"+childBlock.task.name+"]","{","out:",out,"}");
+                            
+                            for(var i=0;i<out.length;i++){
+                                results.push(out[i]);
+                            }
+                            if (!options.keepRunning){
+                                log(level,">> Task next block Resolved completely [" + task.name + "->"+childBlock.task.name+"]","{","results:",results,"}");
+                                resolve(results);
+                                resolveTask(results);
+                            }else{
+                                log(level,">> Task next block Resolved, but task is still running [" + task.name + "->"+childBlock.task.name+"]");
+                                resolveTask(results);
+                            }
 
-                                running--;
-                                log(">>Accepted Task Result: " + results,context.level+2,out)
-                                
-                                if (running==0){
-                                    log2("["+level+"]","'"+task.name+"'","->","'"+childBlock.task.name+"'","No Running","options:",options);
-                                    if (!options.keepRunning){
-                                        log("Returning value : " + results,context.level)
-                                        log2("["+level+"]","'"+task.name+"'","->","'"+childBlock.task.name+"'","Resolving completly the task",results);
-                                        results=out;
-                                        resolve(results);
-                                        resolveTask(results);
-                                    }else{
-                                        log2("["+level+"]","'"+task.name+"'","->","'"+childBlock.task.name+"'","Resolving task and keep running");
-                                        resolveTask(results);
-                                    }
-                                } // running =0
-
-                            }).catch(function(err){
-                                log2("ERROR","error:",err);
-                                log("Error " + results,context.level,err);
-                                rejectTask(err);
-                                reject(err);
-                                return;
-                            });
-
-                        })(block.childs[i]);
-                    } // end of running childs
+                        }).catch(function(err){
+                            log(level,">> Task next block execution Failed","{","error:",err,"}");
+                            rejectTask(err);
+                            reject(err);
+                            return;
+                        });
+                    } // end of next block
 
 
                 }).catch(function(err){
-                    log2("err",err);
+                    log(0,">> ERROR","{","error:",err,"}");
                     reject(err);
                     throw err;
                 })

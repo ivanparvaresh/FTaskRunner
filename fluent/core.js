@@ -222,6 +222,36 @@ module.exports = function (container) {
         }
     });
     tasks.push({
+        name: "foreachSync",
+        def: function (instance) {
+            return {};
+        },
+        exec: function (scope, next) {
+
+            var arr=scope.$$input;
+            var index=0;
+            function nextLoop(){
+                if (index >= arr.length){
+                    next(arr[index],{ keepRunning:false })
+                        .then(function(result){
+                            index++;    
+                        }).catch(function(err){
+                            throw err;
+                        });
+                }else{
+                    next(arr[index],{ keepRunning:true })
+                        .then(function(result){
+                            index++;
+                            nextLoop();
+                        }).catch(function(err){
+                            throw err;
+                        });
+                }
+            }
+            nextLoop();
+        }
+    });
+    tasks.push({
         name:"rif",
         def:function(instance,conditionFunc,builderFunc){
 
