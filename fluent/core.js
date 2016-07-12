@@ -104,7 +104,7 @@ module.exports = function (container) {
         exec: function (scope, next) {
 
             var str = scope.$$input;
-            var name = (scope.name == null) ? "" : scope.name;
+            var name = (scope.name == null) ? "{0}" : scope.name;
             if (scope.params != null) {
 
                 for (var i = 0; i < scope.params.length; i++) {
@@ -112,7 +112,8 @@ module.exports = function (container) {
                     name = name.replace("{" + scope.params[i] + "}", scope.$$getParam(scope.params[i]));
                 }
             }
-            console.log(str);
+            name = name.replace("{0}",str);
+            console.log(name);
             next(scope.$$input);
         }
     });
