@@ -4,8 +4,10 @@ ftask({debug:false})
     .build("test",function(root){
            
         root
+            .string("Parvaresh")
+            .addParam("lname")
             .string("Javad")
-            .print("My name is {0}")
+            .print("My name is {0} {lname} do you know",["lname"])
         
     })
     .run(null).then(function(result){

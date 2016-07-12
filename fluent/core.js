@@ -95,26 +95,57 @@ module.exports = function (container) {
     tasks.push({
         name: "print",
 
-        def: function (instacne,name,params) {
+        def: function (instacne,text,params) {
             return {
-                name: name,
-                params: params
+                text: text,
+                params:params
             }
         },
         exec: function (scope, next) {
 
-            var str = scope.$$input;
-            var name = (scope.name == null) ? "{0}" : scope.name;
+            var inputStr=scope.$$input;
+            
             if (scope.params != null) {
-
                 for (var i = 0; i < scope.params.length; i++) {
-                    str = str.replace("{" + scope.params[i] + "}", scope.$$getParam(scope.params[i]));
-                    name = name.replace("{" + scope.params[i] + "}", scope.$$getParam(scope.params[i]));
+                    inputStr = inputStr.replace("{" + scope.params[i] + "}", scope.$$getParam(scope.params[i]));
                 }
             }
-            name = name.replace("{0}",str);
-            console.log(name);
+
+            if (scope.text==null){
+                console.log(inputStr)
+            }else{
+                var text=scope.text;
+
+                if (scope.params != null) {
+                    for (var i = 0; i < scope.params.length; i++) {
+                        text = text.replace("{" + scope.params[i] + "}", scope.$$getParam(scope.params[i]));
+                    }
+                }
+
+                formatIndex=text.indexOf("{0}");
+                if (formatIndex==-1){
+                    console.log(text,inputStr);
+                }else{
+                    var before=text.substr(0,formatIndex);
+                    var after=text.substr(formatIndex+3 );
+                    console.log(before,inputStr,after);
+                }
+            }
             next(scope.$$input);
+
+            // var str = scope.$$input;
+
+            // var name = (scope.name == null) ? "{0}" : scope.name;
+            // if (scope.params != null) {
+
+            //     for (var i = 0; i < scope.params.length; i++) {
+            //         str = str.replace("{" + scope.params[i] + "}", scope.$$getParam(scope.params[i]));
+            //         name = name.replace("{" + scope.params[i] + "}", scope.$$getParam(scope.params[i]));
+            //     }
+            // }
+            // name = name.replace("{0}",str);
+            // console.log(name);
+            // next(scope.$$input);
         }
     });
 
