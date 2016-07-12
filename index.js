@@ -266,7 +266,8 @@ module.exports=function(options){
 
                     var options={
                         keepRunning:false,
-                        terminate:false  
+                        terminate:false  ,
+                        errorReport:false,
                     }
                     if (opts!=null){
                         if (opts.keepRunning){
@@ -275,6 +276,17 @@ module.exports=function(options){
                         if (opts.terminate){
                             options.terminate=opts.terminate;
                         }
+                        if (opts.errorReport){
+                            options.errorReport=opts.errorReport;
+                        }
+                    }
+                    
+                    log(level,">> Task executed [" + task.name + "]","{","output:",out,",","options:",options,"}");
+                    if (options.errorReport){
+                        log(level,">> Task reported an error [" + task.name + "]","{","error:",out,"}");
+                        reject(out)
+                        resolveTask(results);
+                        return;
                     }
 
                     log(level,">> Task executed [" + task.name + "]","{","output:",out,",","options:",options,"}");
@@ -300,24 +312,24 @@ module.exports=function(options){
                         var childContext=
                                 createContext(context, childBlock.scope, out);
                             
-                        log(level,">> Executing next block[" + task.name + "->"+childBlock.task.name+"]","{","input:",out,"}");
+                        log(level,">> Executing Task [" + task.name + "->"+childBlock.task.name+"]","{","input:",out,"}");
                         exec(childBlock,childContext).then(function(out){
-                            log(level,">> Task next block Resolved [" + task.name + "->"+childBlock.task.name+"]","{","out:",out,"}");
+                            log(level,">> Task Resolved [" + task.name + "->"+childBlock.task.name+"]","{","out:",out,"}");
                             
                             for(var i=0;i<out.length;i++){
                                 results.push(out[i]);
                             }
                             if (!options.keepRunning){
-                                log(level,">> Task next block Resolved completely [" + task.name + "->"+childBlock.task.name+"]","{","results:",results,"}");
+                                log(level,">> Task Resolved completely [" + task.name + "->"+childBlock.task.name+"]","{","results:",results,"}");
                                 resolve(results);
                                 resolveTask(results);
                             }else{
-                                log(level,">> Task next block Resolved, but task is still running [" + task.name + "->"+childBlock.task.name+"]");
+                                log(level,">> Task Resolved, but task is still running [" + task.name + "->"+childBlock.task.name+"]");
                                 resolveTask(results);
                             }
 
                         }).catch(function(err){
-                            log(level,">> Task next block execution Failed","{","error:",err,"}");
+                            log(level,">> Task ["+task.name+"->"+childBlock.task.name+"] execution Failed","{","error:",err,"}");
                             rejectTask(err);
                             reject(err);
                             return;
@@ -325,13 +337,7 @@ module.exports=function(options){
                     } // end of next block
 
 
-                }).catch(function(err){
-                    log(0,">> ERROR","{","error:",err,"}");
-                    reject(err);
-                    throw err;
-                })
-
-                
+                });
             });
         })
     } // end of exec function

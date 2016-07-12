@@ -1,13 +1,12 @@
 var ftask=require("./../index");
 
-ftask()
+ftask({debug:true})
     .build("error",function(root){
         
         root
-            .for(1,3)
             .wait(root=>{
                 root.custom(function(scope,next){
-                    next(data);
+                    throw new Error("hi");
                 })
                 .string("done");
             })
@@ -15,6 +14,8 @@ ftask()
             
         
     })
-    .run(null,function(result){
-        console.log("result:",result)
+    .run(null).then(function(result){
+        console.log("Result:",result)
+    }).catch(function(err){
+        console.log("Error2",err);
     });

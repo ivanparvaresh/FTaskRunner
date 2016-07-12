@@ -347,12 +347,13 @@ module.exports = function (container) {
         exec:function(scope, next){
             var builderInstance
                 =scope.builderInstance;
+
             builderInstance.runner.run(scope.getContext(),scope.$$input)
-            .then(function(result){
-                next(result);
-            }).catch(function(err){
-                throw err;
-            })
+                .then(function(result){
+                    next(result);
+                }).catch(function(err){
+                    next(err,{errorReport:true});
+                });
         }
     })
 
