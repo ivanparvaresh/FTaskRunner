@@ -279,7 +279,7 @@ module.exports = function (container) {
             }
             var index=0;
             function nextLoop(){
-                if (index >= arr.length){
+                if (index >= arr.length-1){
                     next(arr[index],{ keepRunning:false })
                         .then(function(result){
                             index++;    
