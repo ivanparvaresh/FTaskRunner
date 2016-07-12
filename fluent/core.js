@@ -160,6 +160,10 @@ module.exports = function (container) {
                 scope.start=scope.$$input.start;
                 scope.end=scope.$$input.end;
             }
+            if (scope.start > scope.end){
+                next(null,{endOfFlow:true});
+                return;
+            }
 
             for (var i = scope.start; i <= scope.end; i++) {
                 if (i == scope.end)
@@ -183,6 +187,10 @@ module.exports = function (container) {
                 scope.end=scope.$$input.end;
             }
 
+            if (scope.start> scope.end){
+                next(null,{endOfFlow:true});
+                return;
+            }
 
             var index=scope.start;
             function nextLoop(){
@@ -213,6 +221,10 @@ module.exports = function (container) {
             return {};
         },
         exec: function (scope, next) {
+            if (scope.$$input.length==0){
+                next(null,{endOfFlow:true});
+                return;
+            }
             for (var i = 0; i < scope.$$input.length; i++) {
                 if (i == scope.$$input.length-1)
                     next(scope.$$input[i]);
@@ -229,6 +241,10 @@ module.exports = function (container) {
         exec: function (scope, next) {
 
             var arr=scope.$$input;
+            if (arr.length==0){
+                next(null,{endOfFlow:true});
+                return;
+            }
             var index=0;
             function nextLoop(){
                 if (index >= arr.length){

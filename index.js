@@ -268,6 +268,7 @@ module.exports=function(options){
                         keepRunning:false,
                         terminate:false  ,
                         errorReport:false,
+                        endOfFlow:false,
                     }
                     if (opts!=null){
                         if (opts.keepRunning){
@@ -278,6 +279,9 @@ module.exports=function(options){
                         }
                         if (opts.errorReport){
                             options.errorReport=opts.errorReport;
+                        }
+                        if (opts.endOfFlow){
+                            options.endOfFlow=opts.endOfFlow;
                         }
                     }
                     
@@ -296,7 +300,10 @@ module.exports=function(options){
                         return;
                     }
 
-                    if (block.nextBlock==null){
+                    if (block.nextBlock==null || options.endOfFlow){
+                        if (options.endOfFlow){
+                            log(level,">> Flow ended by task reporting option" + task.name + "]");
+                        }
                         results.push(out);
                         if (!options.keepRunning){
                             log(level,">> Flow is ended, Returning Task Result [" + task.name + "]","{","results:",results,"}");
